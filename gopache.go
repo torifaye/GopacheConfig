@@ -1,12 +1,10 @@
-package main
+package gopache
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"regexp"
 )
 
@@ -18,10 +16,10 @@ const (
 )
 
 var (
-	commentMatcher      *regexp.Regexp
-	directiveMatcher    *regexp.Regexp
-	sectionOpenMatcher  *regexp.Regexp
-	sectionCloseMatcher *regexp.Regexp
+	commentMatcher      = regexp.MustCompile(commentRegex)
+	directiveMatcher    = regexp.MustCompile(directiveRegex)
+	sectionOpenMatcher  = regexp.MustCompile(sectionOpenRegex)
+	sectionCloseMatcher = regexp.MustCompile(sectionCloseRegex)
 )
 
 // ConfigNode is a recursively defined n-ary tree
@@ -119,24 +117,4 @@ func Parse(r io.Reader) (*ConfigNode, error) {
 		return nil, err
 	}
 	return currentNode, nil
-}
-
-func main() {
-	commentMatcher, _ = regexp.Compile(commentRegex)
-	directiveMatcher, _ = regexp.Compile(directiveRegex)
-	sectionOpenMatcher, _ = regexp.Compile(sectionOpenRegex)
-	sectionCloseMatcher, _ = regexp.Compile(sectionCloseRegex)
-
-	file, err := os.Open("./data/httpd.conf")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	output, err := Parse(file)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Print(output.String(0))
 }
