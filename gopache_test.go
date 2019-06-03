@@ -1,29 +1,66 @@
 package gopache
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-// TODO: Add unit tests
 func TestParse(t *testing.T) {
-	file, err := os.Open("./data/httpd.conf")
-	if err != nil {
-		log.Fatal(err)
-	}
+	file, _ := os.Open("./data/httpd.conf")
+
 	defer file.Close()
 
 	root, err := Parse(file)
 
 	if err != nil {
-		log.Fatal(err)
-	}
-	if len(root.Children) != 39 {
-		t.Errorf("len(root.Children) = %d; want 39", len(root.Children))
+		panic(err)
 	}
 
-	// Debug string
-	fmt.Print(root.String(0))
+	assert.Equal(t, 39, len(root.Children))
+}
+
+func TestIsRootNode(t *testing.T) {
+	file, _ := os.Open("./data/httpd.conf")
+
+	defer file.Close()
+
+	root, _ := Parse(file)
+
+	assert.Equal(t, true, root.isRootNode())
+}
+
+func TestFindOne(t *testing.T) {
+	file, _ := os.Open("./data/httpd.conf")
+	defer file.Close()
+
+	root, _ := Parse(file)
+
+	node, err := root.FindOne("LoadModule")
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Equal(t, "LoadModule", node.Name)
+
+	assert.Equal(t, "alias_module modules/mod_alias.so", node.Content)
+}
+
+func TestFind(t *testing.T) {
+	file, _ := os.Open("./data/httpd.conf")
+	defer file.Close()
+
+	root, _ := Parse(file)
+
+	matches, err := root.Find("LoadModule")
+	if err != nil {
+		panic(err)
+	}
+
+	assert.Equal(t, 10, len(matches))
+
+	for _, m := range matches {
+		assert.Equal(t, "LoadModule", m.Name)
+	}
 }

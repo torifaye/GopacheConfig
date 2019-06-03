@@ -2,6 +2,7 @@ package gopache
 
 import (
 	"bufio"
+	"container/list"
 	"errors"
 	"fmt"
 	"io"
@@ -85,6 +86,55 @@ func (c *ConfigNode) String(level int) string {
 		children += tabs + node.String(level+1)
 	}
 	return children
+}
+
+// FindOne finds the first element in the subtree c where node.Name == name
+func (c *ConfigNode) FindOne(name string) (*ConfigNode, error) {
+	if c == nil {
+		return nil, errors.New("Node is null")
+	}
+
+	queue := list.New()
+	queue.PushBack(c)
+
+	// Breadth first search
+	for queue.Len() != 0 {
+		node := queue.Front()
+		queue.Remove(node)
+		for _, e := range node.Value.(*ConfigNode).Children {
+			queue.PushBack(e)
+		}
+		if node.Value.(*ConfigNode).Name == name {
+			return node.Value.(*ConfigNode), nil
+		}
+	}
+	return nil, nil
+}
+
+// Find finds all elements in the subtree c where node.Name == name
+func (c *ConfigNode) Find(name string) ([]*ConfigNode, error) {
+	if c == nil {
+		return nil, errors.New("Node is null")
+	}
+
+	queue := list.New()
+	queue.PushBack(c)
+
+	matches := []*ConfigNode{}
+
+	// Breadth first search
+	for queue.Len() != 0 {
+		node := queue.Front()
+		queue.Remove(node)
+		for _, e := range node.Value.(*ConfigNode).Children {
+			queue.PushBack(e)
+		}
+		if node.Value.(*ConfigNode).Name == name {
+			matches = append(matches, node.Value.(*ConfigNode))
+		}
+	}
+
+	return matches, nil
 }
 
 // Parse reads a data source and converts the apache config file into a tree-based struct
