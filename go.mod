@@ -1,4 +1,4 @@
-module github.com/Akash-Nayak/GopacheConfig
+module github.com/RobertYost/GopacheConfig
 
 go 1.16
 
